@@ -18,7 +18,7 @@
 
 %define major 2
 %define minor 1
-%define release 1
+%define release 3
 
 %define version %{major}.%{minor}
 %define _openlavatop /opt/openlava-%{version}
@@ -34,7 +34,7 @@
 Summary: openlava Distributed Batch Scheduler
 Name: openlava
 Version: 2.1
-Release: 1
+Release: 3
 License: GPLv2
 Group: Applications/Productivity
 Vendor: openlava foundation
@@ -444,6 +444,12 @@ exit 0
 %attr(0755,openlava,openlava) %dir %{_openlavatop}/work/logdir
 
 %changelog
+* Mon Oct 28 2013 Dougal Ballantyne <dougalb@gmail.com> 2.1-3
+- merged with latest 2.1 branch for bjobs -pl fix
+* Sun Sep 01 2013 Dougal Ballantyne <dougalb@gmail.com> 2.1-2
+- updates for lavaCloud
+- pulled latest 2.1 branch
+- patched LIM for larger clusters
 * Sun Oct 30 2011 modified the spec file so that autoconf creates
 - openlava configuration files and use the outptu variables to make
 - the necessary subsititution in the them. Change the post install
