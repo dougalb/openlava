@@ -160,6 +160,7 @@ install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/config/openlava.csh $RPM_BUILD_
 
 # include
 install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsf/lsf.h $RPM_BUILD_ROOT%{_openlavatop}/include
+install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsf/config.h $RPM_BUILD_ROOT%{_openlavatop}/include
 install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsbatch/lsbatch.h $RPM_BUILD_ROOT%{_openlavatop}/include
 
 # lib
@@ -412,6 +413,7 @@ exit 0
 # headers
 %{_includedir}/lsbatch.h
 %{_includedir}/lsf.h
+%{_includedir}/config.h
 
 # docs
 %doc COPYING
@@ -446,6 +448,7 @@ exit 0
 %changelog
 * Mon Oct 28 2013 Dougal Ballantyne <dougalb@gmail.com> 2.1-3
 - merged with latest 2.1 branch for bjobs -pl fix
+- added config.h to install and files
 * Sun Sep 01 2013 Dougal Ballantyne <dougalb@gmail.com> 2.1-2
 - updates for lavaCloud
 - pulled latest 2.1 branch
