@@ -160,8 +160,8 @@ install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/config/openlava.csh $RPM_BUILD_
 
 # include
 install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsf/lsf.h $RPM_BUILD_ROOT%{_openlavatop}/include
-install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsf/config.h $RPM_BUILD_ROOT%{_openlavatop}/include
 install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/lsbatch/lsbatch.h $RPM_BUILD_ROOT%{_openlavatop}/include
+install -m 644 $RPM_BUILD_DIR/%{name}-%{version}/config.h $RPM_BUILD_ROOT%{_openlavatop}/include
 
 # lib
 install -m 755 $RPM_BUILD_DIR/%{name}-%{version}/lsf/lib/liblsf.a  $RPM_BUILD_ROOT%{_openlavatop}/lib
