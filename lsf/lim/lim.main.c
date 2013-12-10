@@ -1,7 +1,5 @@
 /*
- * Copyright (C) 2011 David Bigagli
- *
- * $Id: lim.main.c 397 2007-11-26 19:04:00Z mblack $
+ * Copyright (C) 2011-2012 David Bigagli
  * Copyright (C) 2007 Platform Computing Inc
  *
  * This program is free software; you can redistribute it and/or modify
@@ -284,7 +282,7 @@ Reading configuration from %s/lsf.conf\n", env_dir);
     initSignals();
 
     ls_syslog(LOG_INFO, "\
-%s: Daemon running (%d %d %d)", __func__, myClusterPtr->checkSum,
+%s: Daemon LIM running (%d %d %d)", __func__, myClusterPtr->checkSum,
               ntohs(myHostPtr->statInfo.portno), OPENLAVA_VERSION);
     ls_syslog(LOG_DEBUG, "\
 %s: sampleIntvl %f exchIntvl %f hostInactivityLimit %d masterInactivityLimit %d retryLimit %d", __func__, sampleIntvl, exchIntvl,
@@ -343,7 +341,7 @@ Reading configuration from %s/lsf.conf\n", env_dir);
             /* reset the start time
              */
             t0.tv_sec = t1.tv_sec;
-            t0.tv_usec = t1.tv_sec;
+            t0.tv_usec = 0;
             alarmed = 1;
         } else {
             timer.tv_sec = 5 - (t1.tv_sec - t0.tv_sec);
@@ -686,8 +684,7 @@ initAndConfig(int checkMode, int *kernelPerm)
         lim_Exit("initTcl");
     initParse(&allInfo);
 
-    initReadLoad(checkMode, kernelPerm);
-    initTypeModel(myHostPtr);
+    initReadLoad(checkMode);
 
     if (! checkMode) {
         initConfInfo();
@@ -732,8 +729,6 @@ initAndConfig(int checkMode, int *kernelPerm)
             myHostPtr->status[0] &= ~LIM_LOCKEDU;
         }
     }
-
-    getLastActiveTime();
 
     return 0;
 }
@@ -804,7 +799,7 @@ child_handler(int sig)
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         if (pid == elim_pid) {
             ls_syslog(LOG_ERR, "\
-%s: elim (pid=%d) died (exit_code=%d,exit_sig=%d)",
+%s: elim (pid=%d) died (exit_code=%d, exit_sig=%d)",
                       __func__,
                       (int)elim_pid,
                       WEXITSTATUS (status),
@@ -840,7 +835,10 @@ initSock(int checkMode)
         return -1;
     }
 
-    limSock = chanServSocket_(SOCK_DGRAM, lim_port, -1,  0);
+    /* Tell the channel code to set the reuse option
+     * for the socket.
+     */
+    limSock = chanServSocket_(SOCK_DGRAM, lim_port, -1, CHAN_OP_SOREUSE);
     if (limSock < 0) {
         ls_syslog(LOG_ERR, "\
 %s: unable to create datagram socket port %d; another LIM running?: %M ",
@@ -948,7 +946,7 @@ startPIM(int argc, char **argv)
 
     if ((pimPid = fork())) {
         if (pimPid < 0)
-            ls_syslog(LOG_ERR, "%s: %m", __func__);
+            ls_syslog(LOG_ERR, "%s: fork() pim failed %m", __func__);
         return;
     }
 
@@ -974,7 +972,7 @@ startPIM(int argc, char **argv)
     pargv[0] = getDaemonPath_("/pim", limParams[LSF_SERVERDIR].paramValue);
     lsfExecv(pargv[0], pargv);
 
-    ls_syslog(LOG_ERR, "%s: failed execv %s %m", __func__, pargv[0]);
+    ls_syslog(LOG_ERR, "%s: exec() pim %s failed", __func__, pargv[0]);
 
     exit(-1);
 }
@@ -1098,31 +1096,19 @@ initLiStruct(void)
     li[10].sigdiff=3.0;
 }
 
+/* lim -t
+ */
 static void
 printTypeModel(void)
 {
-    printf("Host Type             : %s\n", getHostType());
-    printf("Host Architecture     : %s\n", getHostModel());
-    printf("Matched Type          : %s\n",
+    printf("Host Type          : %s\n",
            allInfo.hostTypes[myHostPtr->hTypeNo]);
-    printf("Matched Architecture  : %s\n",
+    printf("Host Architecture  : %s\n",
            allInfo.hostArchs[myHostPtr->hModelNo]);
-    printf("Matched Model         : %s\n",
+    printf("Host Model         : %s\n",
            allInfo.hostModels[myHostPtr->hModelNo]);
-    printf("CPU Factor            : %.1f\n",
+    printf("CPU Factor         : %.1f\n",
            allInfo.cpuFactor[myHostPtr->hModelNo]);
-
-    if (myHostPtr->hTypeNo == 1 || myHostPtr->hModelNo == 1) {
-        printf("When automatic detection of host type or model fails, the type or\n");
-        printf("model is set to DEFAULT. LSF will still work on the host. A DEFAULT\n");
-        printf("model may be inefficient because of incorrect CPU factor. A DEFAULT\n");
-        printf("type may cause binary incompatibility - a job from a DEFAULT host \n");
-        printf("type can be dispatched or migrated to another DEFAULT host type.\n\n");
-        printf("User can use lim -t to detect the real model or type for a host. \n");
-        printf("Change a DEFAULT host model by adding a new model in HostModel in\n");
-        printf("lsf.shared.  Change a DEFAULT host type by adding a new type in \n");
-        printf("HostType in lsf.shared.\n\n");
-    }
 }
 
 /* initMiscLiStruct()
